@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Meal Maker AI V4</title>
+<meta name="theme-color" content="#243e31">
+<style>
+:root{
+  --bg:#fbf6ed;--paper:#fffdf9;--ink:#20332a;--muted:#6c786f;--green:#2e5b45;
+  --green2:#416e56;--orange:#e56c3c;--soft:#f0e6d7;--line:#e8dccb;--good:#2d7947;
+  --warn:#a76219;--bad:#a5433e;--shadow:0 20px 60px rgba(43,38,28,.10);--radius:24px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--ink);background:
+  radial-gradient(circle at 90% 0,rgba(229,108,60,.13),transparent 30rem),
+  radial-gradient(circle at 5% 25%,rgba(46,91,69,.08),transparent 28rem),var(--bg);
+}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.shell{max-width:1540px;margin:auto;padding:26px}
+.hero{
+  position:relative;overflow:hidden;display:grid;grid-template-columns:1.3fr .7fr;gap:24px;
+  padding:38px;border-radius:34px;background:linear-gradient(135deg,#1f382c,#416d55);color:white;box-shadow:var(--shadow)
+}
+.hero:after{content:"";position:absolute;width:440px;height:440px;border-radius:50%;right:-170px;top:-210px;background:rgba(255,255,255,.07)}
+.hero h1{font-size:clamp(38px,5.4vw,72px);line-height:.95;letter-spacing:-.045em;margin:10px 0 16px;max-width:900px}
+.hero p{font-size:18px;line-height:1.62;max-width:770px;color:rgba(255,255,255,.83)}
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:900;opacity:.76}
+.hero-card{z-index:1;align-self:stretch;padding:22px;border:1px solid rgba(255,255,255,.15);border-radius:26px;background:rgba(255,255,255,.08);backdrop-filter:blur(10px)}
+.hero-card .big{font-size:34px;font-weight:950;letter-spacing:-.03em;margin:8px 0}
+.hero-card small{font-size:13px;line-height:1.55;color:rgba(255,255,255,.72)}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+.btn{border:0;border-radius:999px;padding:12px 17px;background:var(--orange);color:#fff;font-weight:850;box-shadow:0 7px 20px rgba(229,108,60,.2)}
+.btn.secondary{background:white;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.ghost{background:transparent;color:inherit;border:1px solid currentColor;box-shadow:none}
+.btn.dark{background:var(--ink)}
+.btn.small{padding:8px 11px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.tabs{position:sticky;top:0;z-index:30;display:flex;gap:7px;flex-wrap:wrap;padding:12px 0;background:linear-gradient(var(--bg) 80%,transparent);margin-top:12px}
+.tab{border:1px solid var(--line);background:rgba(255,255,255,.9);padding:10px 14px;border-radius:999px;font-weight:850;color:var(--ink)}
+.tab.active{background:var(--ink);border-color:var(--ink);color:white}
+.page{display:none}.page.active{display:block}
+.grid{display:grid;gap:18px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.card{background:rgba(255,253,249,.94);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:0 8px 30px rgba(48,41,29,.05)}
+.card h2,.card h3{margin-top:0}.sub{color:var(--muted);line-height:1.55}
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:28px 0 14px}
+.section-head h2{font-size:28px;margin:0;letter-spacing:-.02em}
+input,textarea,select{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px 13px;background:white;color:var(--ink);outline:none}
+textarea:focus,input:focus,select:focus{border-color:#b59874;box-shadow:0 0 0 4px rgba(181,152,116,.12)}
+.entry{display:grid;grid-template-columns:1fr auto;gap:9px}
+.tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+.tag{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;background:var(--soft);border:1px solid #e5d5c0;font-size:12px;font-weight:800}
+.tag button{border:0;background:none;color:#876d56;font-weight:950;padding:0}
+.quick-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.quick{border:1px solid var(--line);border-radius:14px;padding:9px;background:white;text-align:left;font-weight:760}
+.quick.on{background:#e8f2eb;border-color:#a9c9b2;color:#24563a}
+.stat{padding:18px;border-radius:19px;background:#f3ecdf;border:1px solid #eadfce}.stat .n{font-size:34px;font-weight:950}
+.notice{padding:13px 15px;border-radius:15px;background:#fff0df;border:1px solid #f1c48f;color:#875014;font-size:13px;font-weight:720;line-height:1.5}
+.notice.good{background:#eaf5ed;border-color:#bad8c2;color:#2d6840}
+.notice.bad{background:#f9e8e7;border-color:#e5b7b3;color:#873c37}
+.ai-status{display:flex;align-items:center;gap:9px;font-weight:850}
+.dot{width:10px;height:10px;border-radius:50%;background:#aaa}.dot.on{background:#34a35b;box-shadow:0 0 0 5px rgba(52,163,91,.12)}.dot.off{background:#dc7b42}
+.toggle{display:flex;align-items:center;gap:9px;padding:9px 12px;border:1px solid var(--line);border-radius:14px;background:white;font-weight:750}
+.toggle input{width:auto;accent-color:var(--green)}
+.profile-row{display:grid;grid-template-columns:1fr 1.4fr 110px;gap:9px;margin:8px 0}
+.insight{padding:18px;border-radius:19px;background:linear-gradient(135deg,#fff8ec,#f2eadb);border:1px solid var(--line)}
+.insight strong{display:block;margin-bottom:4px}.insight p{margin:0;color:var(--muted);line-height:1.5}
+.meal-board{display:grid;grid-template-columns:125px repeat(4,minmax(190px,1fr));gap:10px;overflow:auto;padding:3px 3px 8px}
+.head-cell{font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:900;color:var(--muted);padding:4px 8px}
+.day{position:sticky;left:0;z-index:2;min-height:174px;background:var(--ink);color:white;border-radius:18px;padding:15px;display:flex;flex-direction:column;justify-content:space-between}
+.day b{font-size:21px}.day span{opacity:.65;font-size:11px}
+.meal{min-height:174px;border-radius:18px;overflow:hidden;background:white;border:1px solid var(--line);display:flex;flex-direction:column;position:relative}
+.meal-photo{height:84px;background:linear-gradient(135deg,#ded0bc,#a7b6aa) center/cover no-repeat;position:relative}
+.meal-photo:after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 45%,rgba(0,0,0,.18))}
+.meal-body{padding:11px;display:flex;flex-direction:column;gap:5px;flex:1}
+.meal-body b{font-size:14px;line-height:1.25}
+.meta{display:flex;gap:6px;justify-content:space-between;color:var(--muted);font-size:10px}
+.meal-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:auto}
+.icon{border:1px solid var(--line);background:#fff;border-radius:9px;padding:6px 8px;font-size:10px;font-weight:850}
+.ai-ribbon{position:absolute;left:8px;top:8px;z-index:3;background:rgba(31,56,44,.91);color:#fff;border-radius:999px;padding:5px 7px;font-size:9px;font-weight:900;letter-spacing:.04em}
+.rating{display:flex;gap:4px;margin-top:6px}
+.rate{border:1px solid var(--line);background:white;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:800}.rate.active{background:var(--ink);color:white;border-color:var(--ink)}
+.recipe-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.recipe{background:white;border:1px solid var(--line);border-radius:21px;overflow:hidden}
+.recipe .photo{height:185px;background:linear-gradient(135deg,#decdb9,#9cad9f) center/cover no-repeat;position:relative}
+.recipe .content{padding:17px}.recipe h3{font-size:20px;margin:0 0 7px}.pills{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}.pill{font-size:10px;font-weight:850;background:#f2ebdf;padding:5px 7px;border-radius:999px}
+.shop-columns{columns:3 270px;column-gap:20px}.shop-group{break-inside:avoid;background:white;border:1px solid var(--line);border-radius:17px;padding:14px;margin-bottom:12px}.shop-item{display:flex;gap:8px;padding:7px 0;border-bottom:1px dashed #eee3d5}.shop-item:last-child{border:0}.shop-item input{width:auto}
+.history-list{display:grid;gap:8px}.history-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;background:white;border:1px solid var(--line);border-radius:14px;padding:12px}
+.drawer{position:fixed;inset:0;z-index:50;background:rgba(25,31,27,.46);padding:22px;overflow:auto;display:none}.drawer.open{display:block}
+.drawer-panel{max-width:960px;margin:18px auto;background:#fffaf3;border-radius:28px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.27)}
+.drawer-photo{height:330px;background:linear-gradient(135deg,#d8c5ab,#8fa393) center/cover no-repeat;position:relative}
+.close{position:absolute;right:16px;top:16px;border:0;background:rgba(255,255,255,.94);width:42px;height:42px;border-radius:50%;font-size:20px;font-weight:900}
+.drawer-content{padding:28px}.drawer-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:26px}.drawer li{margin:0 0 9px;line-height:1.5}
+.loading{display:inline-flex;align-items:center;gap:8px}.spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,.45);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:30px;border:2px dashed var(--line);border-radius:20px;color:var(--muted)}
+.footer{text-align:center;color:var(--muted);font-size:11px;margin:28px 0 55px}
+@media(max-width:1000px){.hero,.g2,.g3,.g4,.drawer-grid{grid-template-columns:1fr}.recipe-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.meal-board{grid-template-columns:105px repeat(4,205px)}}
+@media(max-width:650px){.shell{padding:13px}.hero{padding:24px;border-radius:25px}.recipe-grid{grid-template-columns:1fr}.quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.profile-row{grid-template-columns:1fr}.drawer{padding:7px}.drawer-content{padding:19px}.drawer-photo{height:245px}}
+</style>
+</head>
+<body>
+<div class="shell">
+<section class="hero">
+  <div>
+    <div class="eyebrow">Your family’s food brain</div>
+    <h1>Tell it what you have. Let it work out the week.</h1>
+    <p>Family Meal Maker learns what your family actually eats, turns chicken and mince into genuinely different meals, plans school lunches, lunches, dinners and snacks, and shops only for the gaps.</p>
+    <div class="actions">
+      <button class="btn" onclick="go('pantry')">Add what we have</button>
+      <button class="btn ghost" onclick="go('plan')">See this week</button>
+    </div>
+  </div>
+  <div class="hero-card">
+    <div class="eyebrow">AI Chef</div>
+    <div class="big">It gets better every week.</div>
+    <small>Love a meal, reject one, or rate it “okay”. Those decisions are stored on this device and fed back into the next plan, along with pantry ingredients, school-lunch rules, cook time and family dislikes.</small>
+    <div class="actions">
+      <div class="tag">✓ pantry-first</div><div class="tag">✓ learns ratings</div><div class="tag">✓ avoids repeats</div><div class="tag">✓ exact food photos</div>
+    </div>
+  </div>
+</section>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="pantry" onclick="go('pantry')">1 Pantry</button>
+  <button class="tab" data-tab="family" onclick="go('family')">2 Family</button>
+  <button class="tab" data-tab="plan" onclick="go('plan')">3 Meal plan</button>
+  <button class="tab" data-tab="recipes" onclick="go('recipes')">4 Recipes</button>
+  <button class="tab" data-tab="shopping" onclick="go('shopping')">5 Shopping</button>
+  <button class="tab" data-tab="memory" onclick="go('memory')">6 What it learned</button>
+</nav>
+
+<main>
+<section id="pantry" class="page active">
+  <div class="grid g2">
+    <div class="card">
+      <h2>What’s in the house?</h2>
+      <p class="sub">Don’t make this precious. Type a rough fridge/freezer/pantry dump — quantities are optional.</p>
+      <div class="entry">
+        <textarea id="pantryInput" rows="6" placeholder="2 chicken breasts, 1kg beef mince, wraps, cheese, rice, half a capsicum, carrots, eggs..."></textarea>
+        <button class="btn" onclick="addPantry()">Add</button>
+      </div>
+      <div id="pantryTags" class="tags"></div>
+    </div>
+    <div class="card">
+      <h2>Quick add the usuals</h2>
+      <p class="sub">Tap whatever you currently have.</p>
+      <div id="quickGrid" class="quick-grid"></div>
+    </div>
+  </div>
+
+  <div class="section-head"><h2>Use these first</h2></div>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Food that needs using soon</h3>
+      <p class="sub">AI will prioritise these before inventing meals that require more shopping.</p>
+      <div class="entry"><input id="useSoonInput" placeholder="e.g. spinach, avocados, leftover roast chicken"><button class="btn" onclick="addUseSoon()">Add</button></div>
+      <div id="useSoonTags" class="tags"></div>
+    </div>
+    <div class="card">
+      <h3>Tonight can be simple</h3>
+      <div class="grid g2">
+        <label>Max dinner time<select id="maxTime" onchange="saveSettings()"><option value="20">20 min</option><option value="30">30 min</option><option value="45" selected>45 min</option><option value="60">60 min</option></select></label>
+        <label>People for dinner<select id="servings" onchange="saveSettings()"><option>2</option><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option></select></label>
+      </div>
+      <div class="tags">
+        <label class="toggle"><input id="budget" type="checkbox" checked onchange="saveSettings()"> Prefer budget meals</label>
+        <label class="toggle"><input id="leftovers" type="checkbox" checked onchange="saveSettings()"> Use leftovers intelligently</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head"><h2>Pantry snapshot</h2></div>
+  <div class="grid g4">
+    <div class="stat"><div class="n" id="statPantry">0</div><div>ingredients logged</div></div>
+    <div class="stat"><div class="n" id="statLikes">0</div><div>likes learned</div></div>
+    <div class="stat"><div class="n" id="statRatings">0</div><div>meals rated</div></div>
+    <div class="stat"><div class="n" id="statPlan">0</div><div>meals planned</div></div>
+  </div>
+</section>
+
+<section id="family" class="page">
+  <div class="grid g2">
+    <div class="card">
+      <h2>Things we like</h2>
+      <p class="sub">Foods, cuisines, textures or styles. Examples: tacos, pasta, BBQ, mild curry, crunchy, cheesy, rice bowls.</p>
+      <div class="entry"><input id="likeInput" placeholder="tacos, pasta, chicken, Mexican"><button class="btn" onclick="addPref('likes')">Add</button></div>
+      <div id="likeTags" class="tags"></div>
+    </div>
+    <div class="card">
+      <h2>Things we don’t like</h2>
+      <p class="sub">These strongly steer the planner away from a meal.</p>
+      <div class="entry"><input id="dislikeInput" placeholder="mushrooms, coriander, very spicy"><button class="btn" onclick="addPref('dislikes')">Add</button></div>
+      <div id="dislikeTags" class="tags"></div>
+    </div>
+  </div>
+
+  <div class="section-head"><h2>Rules the AI must respect</h2></div>
+  <div class="card">
+    <div class="grid g3">
+      <label>Plan length<select id="planDays" onchange="saveSettings()"><option value="5">Monday–Friday</option><option value="7" selected>Full 7 days</option></select></label>
+      <label>School lunches<select id="schoolMode" onchange="saveSettings()"><option value="nut-free" selected>Nut-free, eaten cold</option><option value="cold">Eaten cold</option><option value="none">Don’t plan school lunches</option></select></label>
+      <label>Variety<select id="variety" onchange="saveSettings()"><option value="high" selected>High — mix cuisines/styles</option><option value="medium">Medium</option><option value="comfort">Mostly familiar favourites</option></select></label>
+    </div>
+    <div style="margin-top:15px">
+      <label>Allergies / medical dietary requirements <span class="sub">(separate from dislikes)</span>
+        <input id="allergies" placeholder="Leave blank if none. Always check food labels yourself." oninput="saveSettings()">
+      </label>
+    </div>
+  </div>
+
+  <div class="section-head"><h2>Individual family members</h2><button class="btn secondary small" onclick="addPerson()">+ Add person</button></div>
+  <div class="card">
+    <p class="sub">Useful when one person hates something but the rest of the house doesn’t.</p>
+    <div id="people"></div>
+  </div>
+</section>
+
+<section id="plan" class="page">
+  <div class="section-head">
+    <div><h2>This week</h2><p class="sub" style="margin:4px 0 0">The AI week is now generated in a lean fast call; recipes and shopping are handled separately so Netlify does not time out.</p></div>
+    <div class="actions" style="margin:0">
+      <button id="aiTestBtn" class="btn secondary" onclick="testAI()">Test AI now</button>
+      <button id="aiPlanBtn" class="btn" onclick="buildAIWeek()">✨ BUILD A NEW AI WEEK</button>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="grid g2">
+      <div>
+        <div class="ai-status"><span id="aiDot" class="dot off"></span><span id="aiStatus">Checking AI configuration…</span></div>
+        <div class="sub" id="aiProof" style="margin-top:7px">Press “Test AI now” for a real model call.</div>
+      </div>
+      <div>
+        <div id="sourceBadge" class="tag">CURRENT PLAN: CHECKING</div>
+        <div class="sub" id="planSummary" style="margin-top:7px">Your plan is saved on this device.</div>
+      </div>
+    </div>
+    <div class="actions" style="margin-top:14px">
+      <button class="btn secondary small" onclick="buildFallback()">Load offline demo plan instead</button>
+    </div>
+  </div>
+  <div id="planNotice"></div>
+  <div class="card" style="padding:13px;overflow:hidden"><div id="mealBoard" class="meal-board"></div></div>
+  <div class="section-head"><h2>AI suggestions for your family</h2></div>
+  <div id="insights" class="grid g3"></div>
+</section>
+
+<section id="recipes" class="page">
+  <div class="section-head">
+    <div><h2>Recipes in your plan</h2><p class="sub" style="margin:4px 0 0">AI recipes are completed when you open them, so you don’t pay to generate instructions for meals you swap out.</p></div>
+    <div class="actions" style="margin:0">
+      <select id="recipeFilter" onchange="renderRecipes()" style="width:auto"><option value="all">All</option><option value="school">School lunches</option><option value="lunch">Lunches</option><option value="dinner">Dinners</option><option value="snack">Snacks</option></select>
+    </div>
+  </div>
+  <div id="recipeGrid" class="recipe-grid"></div>
+</section>
+
+<section id="shopping" class="page">
+  <div class="section-head">
+    <div><h2>Shopping list</h2><p class="sub" style="margin:4px 0 0">Generated from the selected week after taking your logged pantry into account.</p></div>
+    <div class="actions" style="margin:0"><button class="btn secondary" onclick="copyShopping()">Copy</button><button class="btn" onclick="purchasedToPantry()">Move checked to pantry</button></div>
+  </div>
+  <div id="shoppingList" class="shop-columns"></div>
+</section>
+
+<section id="memory" class="page">
+  <div class="section-head"><h2>What the planner has learned</h2></div>
+  <div class="grid g3">
+    <div class="card"><h3>Loved meals</h3><div id="lovedMeals" class="history-list"></div></div>
+    <div class="card"><h3>Okay meals</h3><div id="okayMeals" class="history-list"></div></div>
+    <div class="card"><h3>Don’t bring these back</h3><div id="nopeMeals" class="history-list"></div></div>
+  </div>
+  <div class="section-head"><h2>Recent rotation</h2><button class="btn secondary small" onclick="clearMemory()">Reset learning</button></div>
+  <div class="card"><div id="recentMeals" class="tags"></div></div>
+</section>
+</main>
+<div class="footer">Data such as pantry items, preferences and ratings stays in this browser. AI requests are sent through your own Netlify function when AI mode is enabled.</div>
+</div>
+
+<div id="drawer" class="drawer" onclick="if(event.target===this)closeDrawer()"><div id="drawerPanel" class="drawer-panel"></div></div>
+
+<script>
+const FALLBACK_PHOTOS={
+ chicken:"https://images.unsplash.com/photo-1532550907401-a500c9a57435?auto=format&fit=crop&w=1200&q=80",
+ pasta:"https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1200&q=80",
+ taco:"https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?auto=format&fit=crop&w=1200&q=80",
+ wrap:"https://images.unsplash.com/photo-1626700051175-6818013e1d4f?auto=format&fit=crop&w=1200&q=80",
+ rice:"https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=1200&q=80",
+ burger:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=80",
+ muffin:"https://images.unsplash.com/photo-1607958996333-41aef7caefaa?auto=format&fit=crop&w=1200&q=80",
+ salad:"https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=80"
+};
+const fallbackRecipes=[
+ {id:"fb-fajitas",name:"Chicken Fajita Wraps",mealType:"dinner",time:30,servings:5,photo:FALLBACK_PHOTOS.wrap,tags:["chicken","Mexican","wraps"],ingredients:[["chicken breast","800 g"],["wraps","10"],["capsicum","2"],["onion","1"],["cheese","150 g"],["lettuce","1"],["sour cream","1 tub"],["Mexican seasoning","1 sachet"]],steps:["Slice chicken, capsicum and onion.","Cook chicken until golden, then add vegetables and seasoning.","Warm wraps and put all fillings on the table.","Let everyone build their own wraps."]},
+ {id:"fb-bolognese",name:"Hidden-Veg Beef Bolognese",mealType:"dinner",time:40,servings:5,photo:FALLBACK_PHOTOS.pasta,tags:["beef mince","Italian","pasta"],ingredients:[["beef mince","750 g"],["pasta","500 g"],["passata","700 mL"],["carrot","2"],["zucchini","1"],["onion","1"],["parmesan","to serve"]],steps:["Grate carrot and zucchini.","Brown onion and mince.","Add vegetables and passata and simmer.","Cook pasta, combine and serve with parmesan."]},
+ {id:"fb-teriyaki",name:"Sticky Teriyaki Chicken Bowls",mealType:"dinner",time:30,servings:5,photo:FALLBACK_PHOTOS.rice,tags:["chicken","Asian","rice"],ingredients:[["chicken breast","800 g"],["rice","2.5 cups"],["broccoli","2 heads"],["carrot","2"],["soy sauce","1/3 cup"],["honey","3 tbsp"],["garlic","2 cloves"]],steps:["Cook rice.","Brown diced chicken.","Add soy, honey and garlic.","Cook vegetables and serve everything in bowls."]},
+ {id:"fb-tacos",name:"Loaded Beef Taco Bowls",mealType:"dinner",time:25,servings:5,photo:FALLBACK_PHOTOS.taco,tags:["beef mince","Mexican","rice"],ingredients:[["beef mince","750 g"],["rice","2 cups"],["corn","1 tin"],["tomato","3"],["lettuce","1"],["cheese","150 g"],["avocado","2"],["taco seasoning","1 sachet"]],steps:["Cook rice.","Brown mince with seasoning.","Prepare toppings.","Build bowls at the table."]},
+ {id:"fb-burger",name:"Homemade Beef Burgers",mealType:"dinner",time:30,servings:5,photo:FALLBACK_PHOTOS.burger,tags:["beef mince","BBQ","burger"],ingredients:[["beef mince","750 g"],["burger buns","5"],["cheese","5 slices"],["lettuce","1"],["tomato","2"],["onion","1"],["egg","1"]],steps:["Mix mince with egg and seasonings; shape patties.","Cook patties and add cheese.","Toast buns and prepare salad.","Build burgers."]},
+ {id:"fb-chicken-pasta",name:"Creamy Chicken Pesto Pasta",mealType:"dinner",time:25,servings:5,photo:FALLBACK_PHOTOS.pasta,tags:["chicken","pasta","quick"],ingredients:[["chicken breast","700 g"],["pasta","500 g"],["pesto","1 jar"],["cream","300 mL"],["baby spinach","120 g"],["parmesan","80 g"]],steps:["Cook pasta.","Cook sliced chicken until golden.","Add cream, pesto and spinach.","Toss through pasta and parmesan."]},
+ {id:"fb-nachos",name:"Loaded Beef Nachos",mealType:"dinner",time:30,servings:5,photo:FALLBACK_PHOTOS.taco,tags:["beef mince","Mexican","sharing"],ingredients:[["beef mince","700 g"],["corn chips","1 large bag"],["cheese","200 g"],["corn","1 tin"],["tomato","2"],["avocado","2"],["sour cream","1 tub"]],steps:["Brown seasoned mince.","Layer corn chips, mince, corn and cheese.","Bake until bubbling.","Top with tomato, avocado and sour cream."]},
+ {id:"fb-school-wrap",name:"Chicken & Cheese Lunchbox Wrap",mealType:"school",time:10,servings:1,photo:FALLBACK_PHOTOS.wrap,tags:["school","chicken","cold"],ingredients:[["cooked chicken","100 g"],["wrap","1"],["cheese","30 g"],["lettuce","handful"],["carrot","1/2"],["mayonnaise","1 tbsp"]],steps:["Spread wrap lightly with mayonnaise.","Add chicken, cheese, lettuce and carrot.","Roll tightly and pack with an ice brick."]},
+ {id:"fb-pizza-scroll",name:"Cheesy Pizza Scrolls",mealType:"school",time:25,servings:4,photo:FALLBACK_PHOTOS.muffin,tags:["school","bake","freezer"],ingredients:[["self raising flour","2 cups"],["Greek yoghurt","1 cup"],["tomato paste","3 tbsp"],["cheese","1 cup"],["ham","120 g"]],steps:["Mix flour and yoghurt into dough.","Roll out, spread fillings, roll into a log and slice.","Bake at 200°C until golden.","Cool fully before packing."]},
+ {id:"fb-quesadilla",name:"Chicken Quesadilla Triangles",mealType:"school",time:15,servings:1,photo:FALLBACK_PHOTOS.wrap,tags:["school","chicken","wrap"],ingredients:[["cooked chicken","100 g"],["wrap","1"],["cheese","40 g"],["corn","2 tbsp"],["capsicum","1/4"]],steps:["Fill half a wrap with chicken, cheese, corn and finely diced capsicum.","Fold and toast until crisp.","Cool and cut into triangles."]},
+ {id:"fb-caesar",name:"Chicken Caesar Wrap",mealType:"lunch",time:10,servings:1,photo:FALLBACK_PHOTOS.wrap,tags:["lunch","chicken","wrap"],ingredients:[["cooked chicken","120 g"],["wrap","1"],["cos lettuce","handful"],["parmesan","20 g"],["Caesar dressing","1 tbsp"],["cucumber","1/3"]],steps:["Add all fillings to a wrap.","Drizzle with dressing.","Roll tightly."]},
+ {id:"fb-burrito",name:"Beef Burrito Lunch Bowl",mealType:"lunch",time:12,servings:1,photo:FALLBACK_PHOTOS.rice,tags:["lunch","beef","rice"],ingredients:[["cooked beef mince","120 g"],["rice","1 cup"],["corn","1/3 cup"],["beans","1/3 cup"],["tomato","1"],["cheese","30 g"]],steps:["Add rice to a bowl.","Top with warm beef, corn and beans.","Finish with tomato and cheese."]},
+ {id:"fb-salad",name:"Chicken Pasta Salad",mealType:"lunch",time:15,servings:1,photo:FALLBACK_PHOTOS.salad,tags:["lunch","chicken","cold"],ingredients:[["cooked chicken","120 g"],["pasta","1 cup"],["cucumber","1/3"],["tomato","1"],["baby spinach","handful"],["Greek yoghurt","2 tbsp"]],steps:["Cool cooked pasta.","Mix with chicken and vegetables.","Dress lightly with yoghurt, lemon, salt and pepper."]},
+ {id:"fb-muffin",name:"Banana Oat Muffins",mealType:"snack",time:30,servings:8,photo:FALLBACK_PHOTOS.muffin,tags:["snack","banana","school"],ingredients:[["bananas","2"],["rolled oats","1 cup"],["eggs","2"],["milk","1/2 cup"],["self raising flour","1 cup"]],steps:["Mash banana.","Mix with eggs and milk.","Stir in oats and flour.","Bake in muffin tray at 180°C for about 20 minutes."]},
+ {id:"fb-snackbox",name:"Apple, Cheese & Cracker Box",mealType:"snack",time:5,servings:1,photo:FALLBACK_PHOTOS.salad,tags:["snack","no cook","school"],ingredients:[["apple","1"],["cheese","40 g"],["crackers","6"]],steps:["Slice apple and cheese.","Pack with crackers and an ice brick."]}
+];
+
+const quick=["chicken breast","beef mince","eggs","cheese","milk","Greek yoghurt","wraps","bread","pasta","rice","potatoes","carrot","capsicum","broccoli","lettuce","tomato","onion","garlic","corn","frozen peas","apples","bananas","rolled oats","crackers","baby spinach"];
+const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const mealTypes=["school","lunch","dinner","snack"];
+let state={
+ pantry:["chicken breast","beef mince","eggs","cheese","wraps","pasta","rice","carrot","onion","garlic"],
+ useSoon:[],likes:["chicken","beef mince","pasta","tacos","cheese"],dislikes:[],
+ people:[{name:"Family member",dislikes:""}],
+ settings:{servings:5,days:7,maxTime:45,budget:true,leftovers:true,schoolMode:"nut-free",variety:"high",allergies:""},
+ plan:[],recipes:{},shopping:[],insights:[],ratings:{},recent:[],aiConnected:false,planSource:"fallback",lastAI:null
+};
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function norm(s){return String(s??"").toLowerCase().trim().replace(/[-_]/g," ").replace(/\s+/g," ").replace(/\bchicken breasts\b/g,"chicken breast").replace(/^mince$/,"beef mince")}
+function slug(s){return norm(s).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,60)}
+function save(){localStorage.setItem("familyMealMakerAIv2",JSON.stringify({...state,aiConnected:false}))}
+function load(){
+ try{const x=JSON.parse(localStorage.getItem("familyMealMakerAIv2"));if(x)state={...state,...x,settings:{...state.settings,...x.settings}}}catch(e){}
+ hydrateSettings();renderAll();checkAI();
+ if(!state.plan.length)buildFallback(false);
+}
+function hydrateSettings(){
+ ["servings","planDays","maxTime","schoolMode","variety"].forEach(id=>{const el=document.getElementById(id);if(el)el.value=state.settings[id==="planDays"?"days":id]});
+ document.getElementById("budget").checked=state.settings.budget;
+ document.getElementById("leftovers").checked=state.settings.leftovers;
+ document.getElementById("allergies").value=state.settings.allergies||"";
+}
+function saveSettings(){
+ state.settings={
+  servings:+document.getElementById("servings").value,days:+document.getElementById("planDays").value,maxTime:+document.getElementById("maxTime").value,
+  budget:document.getElementById("budget").checked,leftovers:document.getElementById("leftovers").checked,schoolMode:document.getElementById("schoolMode").value,
+  variety:document.getElementById("variety").value,allergies:document.getElementById("allergies").value.trim()
+ };save();renderStats();
+}
+function splitInput(s){return String(s).split(/,|\n/).map(x=>x.trim()).filter(Boolean)}
+function addPantry(){const el=document.getElementById("pantryInput");state.pantry=[...new Set([...state.pantry,...splitInput(el.value)])];el.value="";save();renderAll()}
+function toggleQuick(item){const n=norm(item),idx=state.pantry.findIndex(x=>norm(x)===n);idx>=0?state.pantry.splice(idx,1):state.pantry.push(item);save();renderAll()}
+function removeFrom(key,item){state[key]=state[key].filter(x=>x!==item);save();renderAll()}
+function addUseSoon(){const el=document.getElementById("useSoonInput");state.useSoon=[...new Set([...state.useSoon,...splitInput(el.value)])];el.value="";save();renderAll()}
+function addPref(key){const id=key==="likes"?"likeInput":"dislikeInput",el=document.getElementById(id);state[key]=[...new Set([...state[key],...splitInput(el.value)])];el.value="";save();renderAll()}
+function addPerson(){state.people.push({name:"Person "+(state.people.length+1),dislikes:""});save();renderPeople()}
+function updatePerson(i,k,v){state.people[i][k]=v;save()}
+function removePerson(i){state.people.splice(i,1);save();renderPeople()}
+function go(id){document.querySelectorAll(".page").forEach(x=>x.classList.toggle("active",x.id===id));document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.tab===id));if(id==="recipes")renderRecipes();if(id==="shopping")renderShopping();if(id==="memory")renderMemory();window.scrollTo({top:document.querySelector(".tabs").offsetTop-5,behavior:"smooth"})}
+function hasPantry(item){const n=norm(item);return state.pantry.some(p=>{const q=norm(p);return q.includes(n)||n.includes(q)})}
+function photoFor(meal){
+ if(meal.photo)return meal.photo;
+ const t=(meal.name+" "+(meal.tags||[]).join(" ")).toLowerCase();
+ if(t.includes("wrap")||t.includes("quesadilla"))return FALLBACK_PHOTOS.wrap;
+ if(t.includes("pasta"))return FALLBACK_PHOTOS.pasta;
+ if(t.includes("taco")||t.includes("nacho")||t.includes("mexican"))return FALLBACK_PHOTOS.taco;
+ if(t.includes("rice")||t.includes("bowl"))return FALLBACK_PHOTOS.rice;
+ if(t.includes("burger"))return FALLBACK_PHOTOS.burger;
+ if(t.includes("muffin")||t.includes("scroll"))return FALLBACK_PHOTOS.muffin;
+ if(t.includes("salad"))return FALLBACK_PHOTOS.salad;
+ if(t.includes("chicken"))return FALLBACK_PHOTOS.chicken;
+ return FALLBACK_PHOTOS.salad;
+}
+function renderPantry(){
+ document.getElementById("pantryTags").innerHTML=state.pantry.length?state.pantry.map(x=>`<span class="tag">${esc(x)} <button onclick="removeFrom('pantry',decodeURIComponent('${encodeURIComponent(x)}'))">×</button></span>`).join(""):`<span class="sub">Nothing logged yet.</span>`;
+ document.getElementById("useSoonTags").innerHTML=state.useSoon.length?state.useSoon.map(x=>`<span class="tag">${esc(x)} <button onclick="removeFrom('useSoon',decodeURIComponent('${encodeURIComponent(x)}'))">×</button></span>`).join(""):`<span class="sub">Nothing urgent.</span>`;
+ document.getElementById("quickGrid").innerHTML=quick.map(x=>`<button class="quick ${state.pantry.some(p=>norm(p)===norm(x))?"on":""}" onclick="toggleQuick(decodeURIComponent('${encodeURIComponent(x)}'))">${state.pantry.some(p=>norm(p)===norm(x))?"✓ ":""}${x}</button>`).join("");
+}
+function renderFamily(){
+ const tags=(key)=>state[key].length?state[key].map(x=>`<span class="tag">${esc(x)} <button onclick="removeFrom('${key}',decodeURIComponent('${encodeURIComponent(x)}'))">×</button></span>`).join(""):`<span class="sub">None yet.</span>`;
+ document.getElementById("likeTags").innerHTML=tags("likes");document.getElementById("dislikeTags").innerHTML=tags("dislikes");renderPeople();
+}
+function renderPeople(){
+ document.getElementById("people").innerHTML=state.people.map((p,i)=>`<div class="profile-row"><input value="${esc(p.name)}" oninput="updatePerson(${i},'name',this.value)" placeholder="Name"><input value="${esc(p.dislikes)}" oninput="updatePerson(${i},'dislikes',this.value)" placeholder="Their dislikes"><button class="btn secondary small" onclick="removePerson(${i})">Remove</button></div>`).join("");
+}
+function renderStats(){
+ document.getElementById("statPantry").textContent=state.pantry.length;
+ document.getElementById("statLikes").textContent=state.likes.length;
+ document.getElementById("statRatings").textContent=Object.keys(state.ratings).length;
+ document.getElementById("statPlan").textContent=state.plan.length;
+}
+function displayType(t){return {school:"School lunch",lunch:"Lunch",dinner:"Dinner",snack:"Snack"}[t]||t}
+function ratingFor(m){return state.ratings[slug(m.name)]?.rating||""}
+function rateMeal(id,rating){
+ const meal=getMealById(id);if(!meal)return;
+ state.ratings[slug(meal.name)]={name:meal.name,rating,tags:meal.tags||[],mealType:meal.mealType,updated:new Date().toISOString()};
+ if(rating==="nope"){save();swapMeal(id);return}
+ save();renderAll();
+}
+function ratingButtons(m){const r=ratingFor(m);return `<div class="rating"><button class="rate ${r==="love"?"active":""}" onclick="event.stopPropagation();rateMeal('${m.id}','love')">♥ Love</button><button class="rate ${r==="okay"?"active":""}" onclick="event.stopPropagation();rateMeal('${m.id}','okay')">Okay</button><button class="rate ${r==="nope"?"active":""}" onclick="event.stopPropagation();rateMeal('${m.id}','nope')">Nope</button></div>`}
+function getMealById(id){return state.recipes[id]||state.plan.find(x=>x.id===id)||fallbackRecipes.find(x=>x.id===id)}
+function renderPlan(){
+ const b=document.getElementById("mealBoard");if(!b)return;
+ let html=`<div></div>${mealTypes.map(t=>`<div class="head-cell">${displayType(t)}</div>`).join("")}`;
+ for(let d=0;d<state.settings.days;d++){
+  html+=`<div class="day"><div><span>Day ${d+1}</span><br><b>${days[d]}</b></div><span>${d<5?"School day":"Weekend"}</span></div>`;
+  for(const t of mealTypes){
+   if(t==="school"&&(d>=5||state.settings.schoolMode==="none")){html+=`<div class="meal"><div class="meal-body"><b>—</b><span class="sub">No school lunch</span></div></div>`;continue}
+   const m=state.plan.find(x=>x.dayIndex===d&&x.mealType===t);
+   if(!m){html+=`<div class="meal"><div class="meal-body"><b>No meal yet</b></div></div>`;continue}
+   html+=`<div class="meal">
+    ${m.source==="ai"?`<span class="ai-ribbon">AI CREATED</span>`:""}
+    <div class="meal-photo" id="planphoto-${m.id}" style="background-image:url('${photoFor(m)}')"></div>
+    <div class="meal-body"><b>${esc(m.name)}</b><div class="meta"><span>${m.time||"?"} min</span><span>${m.reason?esc(m.reason).slice(0,32):""}</span></div>
+    <div class="meal-actions"><button class="icon" onclick="openRecipe('${m.id}')">Recipe</button><button class="icon" onclick="swapMeal('${m.id}')">Swap</button></div>${ratingButtons(m)}</div>
+   </div>`;
+  }
+ }
+ b.innerHTML=html;
+ const badge=document.getElementById("sourceBadge");
+ const summary=document.getElementById("planSummary");
+ if(state.planSource==="ai"){
+   if(badge){badge.textContent="CURRENT PLAN: ✓ REAL AI";badge.style.background="#e8f4eb";badge.style.borderColor="#add0b7";badge.style.color="#245c38";}
+   const when=state.lastAI?.generatedAt?new Date(state.lastAI.generatedAt).toLocaleString():"this session";
+   const model=state.lastAI?.model?` using ${state.lastAI.model}`:"";
+   if(summary)summary.textContent=`Last successful AI build: ${when}${model}.`;
+   document.getElementById("planNotice").innerHTML=`<div class="notice good" style="margin-bottom:12px"><b>✓ REAL AI PLAN.</b> These meals came back from an OpenAI model call. Every AI meal card is also stamped “AI CREATED”.</div>`;
+ }else{
+   if(badge){badge.textContent="CURRENT PLAN: OFFLINE DEMO";badge.style.background="#fff0df";badge.style.borderColor="#f1c48f";badge.style.color="#875014";}
+   if(summary)summary.textContent="This is the fixed built-in demonstration plan. It is not AI.";
+   document.getElementById("planNotice").innerHTML=`<div class="notice" style="margin-bottom:12px"><b>OFFLINE DEMO — NOT AI.</b> This fixed plan is only here so the app still works before your Netlify/OpenAI connection is configured.</div>`;
+ }
+ renderInsights();
+}
+function renderInsights(){
+ const el=document.getElementById("insights");if(!el)return;
+ const list=state.insights.length?state.insights:[
+  "Rate meals after you eat them. The next AI plan receives those ratings.",
+  "Put ingredients that need using in “Use these first” and AI will prioritise them.",
+  "Generate food photos only for recipes you keep; it saves image-generation cost."
+ ];
+ el.innerHTML=list.slice(0,6).map((x,i)=>`<div class="insight"><strong>${["Smart move","Pattern","Suggestion","Worth trying","Easy win","Next week"][i]||"Suggestion"}</strong><p>${esc(x)}</p></div>`).join("");
+}
+function buildFallback(navigate=true){
+ saveSettings();state.plan=[];state.recipes={};state.shopping=[];state.insights=[];state.planSource="fallback";
+ const by={school:fallbackRecipes.filter(x=>x.mealType==="school"),lunch:fallbackRecipes.filter(x=>x.mealType==="lunch"),dinner:fallbackRecipes.filter(x=>x.mealType==="dinner"),snack:fallbackRecipes.filter(x=>x.mealType==="snack")};
+ let counters={school:0,lunch:0,dinner:0,snack:0};
+ for(let d=0;d<state.settings.days;d++){
+  for(const t of mealTypes){
+   if(t==="school"&&(d>=5||state.settings.schoolMode==="none"))continue;
+   const arr=by[t],base=arr[counters[t]++%arr.length];
+   const m={...base,id:base.id+"-"+d+"-"+t,baseId:base.id,dayIndex:d,day:days[d],source:"fallback",ingredients:base.ingredients.map(x=>({item:x[0],amount:x[1]}))};
+   state.plan.push(m);state.recipes[m.id]={...m,steps:base.steps};
+  }
+ }
+ rebuildShopping();rememberPlan();save();renderAll();if(navigate)go("plan");
+}
+function rememberPlan(){
+ const names=state.plan.filter(x=>x.mealType==="dinner").map(x=>x.name);
+ state.recent=[...names,...state.recent].filter((x,i,a)=>a.indexOf(x)===i).slice(0,28);
+}
+function fallbackSwapCandidate(m){
+ const pool=fallbackRecipes.filter(x=>x.mealType===m.mealType&&x.name!==m.name);
+ return pool[Math.floor(Math.random()*pool.length)];
+}
+function swapMeal(id){
+ const i=state.plan.findIndex(x=>x.id===id);if(i<0)return;
+ const old=state.plan[i];
+ if(state.planSource==="ai"&&state.aiConnected){swapWithAI(id);return}
+ const base=fallbackSwapCandidate(old);if(!base)return;
+ const m={...base,id:base.id+"-"+Date.now(),baseId:base.id,dayIndex:old.dayIndex,day:old.day,source:"fallback",ingredients:base.ingredients.map(x=>({item:x[0],amount:x[1]}))};
+ state.plan[i]=m;state.recipes[m.id]={...m,steps:base.steps};delete state.recipes[id];rebuildShopping();save();renderAll();
+}
+
+async function apiJSON(url,options,label="AI request"){
+ const r=await fetch(url,options);
+ const raw=await r.text();
+ let d;
+ try{d=JSON.parse(raw)}catch{
+   const looksHtml=/^\s*</.test(raw);
+   if(looksHtml)throw new Error(`${label} hit a Netlify server error or timeout. The last good plan is still safe.`);
+   throw new Error(`${label} returned an unreadable response (${r.status}).`);
+ }
+ if(!r.ok)throw new Error(d.error||`${label} failed (${r.status}).`);
+ return d;
+}
+async function checkAI(){
+ try{
+  const r=await fetch("/.netlify/functions/ai-chef",{method:"GET"});
+  const d=await r.json();state.aiConnected=!!d.connected;
+ }catch(e){state.aiConnected=false}
+ const dot=document.getElementById("aiDot"),txt=document.getElementById("aiStatus"),proof=document.getElementById("aiProof");
+ if(dot)dot.className="dot "+(state.aiConnected?"on":"off");
+ if(txt)txt.textContent=state.aiConnected?"OpenAI key found in Netlify.":"AI NOT CONNECTED — Netlify function/key not available.";
+ if(proof)proof.textContent=state.aiConnected
+   ?"Configuration exists. Press “Test AI now” to prove the key/model can answer."
+   :"You are currently using only the offline demo planner.";
+}
+async function testAI(){
+ const btn=document.getElementById("aiTestBtn"),txt=document.getElementById("aiStatus"),proof=document.getElementById("aiProof"),dot=document.getElementById("aiDot");
+ const old=btn.innerHTML;btn.disabled=true;btn.innerHTML="Testing real AI…";
+ try{
+   const d=await apiJSON("/.netlify/functions/ai-chef",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"test"})},"AI connection test");
+   if(!d.ok)throw new Error(d.error||"AI test failed");
+   state.aiConnected=true;state.lastAI=d._meta||state.lastAI;save();
+   if(dot)dot.className="dot on";
+   if(txt)txt.textContent="✓ REAL AI TEST PASSED";
+   if(proof)proof.textContent=`OpenAI answered successfully${d._meta?.model?" using "+d._meta.model:""} at ${new Date(d._meta?.generatedAt||Date.now()).toLocaleString()}.`;
+ }catch(e){
+   state.aiConnected=false;
+   if(dot)dot.className="dot off";
+   if(txt)txt.textContent="✗ AI TEST FAILED";
+   if(proof)proof.textContent=e.message;
+ }finally{btn.disabled=false;btn.innerHTML=old}
+}
+function aiPayload(){
+ return {
+  pantry:state.pantry,useSoon:state.useSoon,likes:state.likes,dislikes:state.dislikes,people:state.people,settings:state.settings,
+  ratings:Object.values(state.ratings).slice(-80),recentMeals:state.recent.slice(0,28)
+ }
+}
+async function buildAIWeek(){
+ saveSettings();
+ if(!state.aiConnected){
+   go("plan");
+   document.getElementById("planNotice").innerHTML=`<div class="notice bad" style="margin-bottom:12px"><b>AI is not connected.</b> This button will not fake it or fall back. Press “Test AI now” and fix the Netlify/OpenAI connection first.</div>`;
+   return;
+ }
+ const btn=document.getElementById("aiPlanBtn"),orig=btn.innerHTML;btn.disabled=true;btn.innerHTML=`<span class="loading"><span class="spinner"></span>REAL AI IS BUILDING A FRESH WEEK…</span>`;
+ try{
+  const d=await apiJSON("/.netlify/functions/ai-chef",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"week",previousPlan:state.plan.map(x=>({day:x.day,mealType:x.mealType,name:x.name,rating:ratingFor(x)})),...aiPayload()})},"Weekly AI plan");
+  state.plan=(d.meals||[]).map((m,i)=>({...m,id:`ai-${slug(m.name)}-${m.dayIndex}-${m.mealType}-${i}`,source:"ai"}));
+  state.recipes={};state.plan.forEach(m=>state.recipes[m.id]={...m});
+  state.shopping=[];state.insights=d.smartSuggestions||[];state.planSource="ai";state.lastAI=d._meta||{generatedAt:new Date().toISOString()};rememberPlan();save();renderAll();go("plan");
+  document.getElementById("planNotice").innerHTML=`<div class="notice good" style="margin-bottom:12px"><b>✓ REAL AI PLAN BUILT.</b> Now building the shopping list separately so the main AI request stays fast and reliable.</div>`;
+  try{await refreshAIShopping()}catch(shopErr){document.getElementById("planNotice").innerHTML+=`<div class="notice" style="margin-bottom:12px"><b>Plan is safe.</b> Shopping list generation had a problem: ${esc(shopErr.message)}</div>`;}
+ }catch(e){
+  document.getElementById("planNotice").innerHTML=`<div class="notice bad" style="margin-bottom:12px"><b>AI plan failed:</b> ${esc(e.message)}. Your previous plan has not been destroyed.</div>`;
+ }finally{btn.disabled=false;btn.innerHTML=orig;checkAI()}
+}
+async function refreshAIShopping(){
+ if(state.planSource!=="ai"||!state.plan.length)return;
+ const d=await apiJSON("/.netlify/functions/ai-chef",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"shopping",currentPlan:state.plan.map(x=>({day:x.day,mealType:x.mealType,name:x.name,description:x.description||""})),...aiPayload()})},"AI shopping list");
+ state.shopping=d.shopping||[];save();renderShopping();
+}
+async function swapWithAI(id){
+ const old=getMealById(id);if(!old)return;
+ const idx=state.plan.findIndex(x=>x.id===id);
+ const btnNotice=document.getElementById("planNotice");btnNotice.innerHTML=`<div class="notice" style="margin-bottom:12px">AI is finding a different ${displayType(old.mealType).toLowerCase()} for ${old.day}…</div>`;
+ try{
+  const d=await apiJSON("/.netlify/functions/ai-chef",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"swap",replace:old,currentPlan:state.plan,...aiPayload()})},"AI meal swap");
+  const m={...d.meal,id:`ai-${slug(d.meal.name)}-${old.dayIndex}-${old.mealType}-${Date.now()}`,dayIndex:old.dayIndex,day:old.day,mealType:old.mealType,source:"ai"};
+  state.plan[idx]=m;state.recipes[m.id]={...m};delete state.recipes[id];state.shopping=[];save();renderAll();
+  try{await refreshAIShopping()}catch(e){}
+ }catch(e){btnNotice.innerHTML=`<div class="notice bad" style="margin-bottom:12px">${esc(e.message)}</div>`}
+}
+function rebuildShopping(){
+ const map={};
+ state.plan.forEach(m=>(m.ingredients||[]).forEach(x=>{const item=x.item||x[0],amount=x.amount||x[1]||"";if(!hasPantry(item)){const k=norm(item);if(!map[k])map[k]={item,amounts:[],forMeals:[],category:shopCat(item)};if(amount)map[k].amounts.push(amount);map[k].forMeals.push(m.name)}}));
+ state.shopping=Object.values(map).map(x=>({category:x.category,item:x.item,amount:[...new Set(x.amounts)].join(" + "),forMeals:[...new Set(x.forMeals)]}));
+}
+function shopCat(item){
+ const t=norm(item),groups=[["Fruit & veg",["lettuce","carrot","zucchini","capsicum","onion","broccoli","tomato","avocado","cucumber","lemon","garlic","ginger","spinach","potato","apple","banana","berries"]],["Meat",["chicken","beef","mince","ham","bacon"]],["Dairy & eggs",["cheese","milk","yoghurt","cream","egg","parmesan","mozzarella"]]];
+ for(const [c,a] of groups)if(a.some(x=>t.includes(x)))return c;return"Pantry & bakery"
+}
+function renderShopping(){
+ const el=document.getElementById("shoppingList");if(!el)return;
+ if(!state.shopping.length&&state.plan.length&&state.planSource!=="ai")rebuildShopping();
+ const groups={};state.shopping.forEach(x=>(groups[x.category||shopCat(x.item)]||=[]).push(x));
+ el.innerHTML=Object.keys(groups).length?Object.entries(groups).map(([cat,items])=>`<div class="shop-group"><h3>${esc(cat)}</h3>${items.map(x=>`<label class="shop-item"><input type="checkbox" data-shop="${encodeURIComponent(x.item)}"><span><b>${esc(x.item)}</b>${x.amount?` — ${esc(x.amount)}`:""}${x.forMeals?.length?`<br><small class="sub">${esc(x.forMeals.slice(0,3).join(", "))}</small>`:""}</span></label>`).join("")}</div>`).join(""):`<div class="empty">${state.planSource==="ai"?"AI shopping list has not been generated yet.":"No shopping list yet."}</div>`;
+}
+function copyShopping(){
+ const txt=state.shopping.map(x=>`• ${x.item}${x.amount?" — "+x.amount:""}`).join("\n");navigator.clipboard?.writeText(txt);alert("Shopping list copied.")
+}
+function purchasedToPantry(){
+ const checked=[...document.querySelectorAll("[data-shop]:checked")].map(x=>decodeURIComponent(x.dataset.shop));state.pantry=[...new Set([...state.pantry,...checked])];state.shopping=state.shopping.filter(x=>!checked.some(c=>norm(c)===norm(x.item)));save();renderAll()
+}
+function renderRecipes(){
+ const filter=document.getElementById("recipeFilter")?.value||"all";const unique=[];const seen=new Set();
+ state.plan.forEach(m=>{const k=slug(m.name)+"-"+m.mealType;if(!seen.has(k)){seen.add(k);unique.push(m)}});
+ const list=unique.filter(m=>filter==="all"||m.mealType===filter);
+ document.getElementById("recipeGrid").innerHTML=list.length?list.map(m=>`<article class="recipe"><div class="photo" id="recipephoto-${m.id}" style="background-image:url('${photoFor(m)}')">${m.source==="ai"?`<span class="ai-ribbon">AI CREATED</span>`:""}</div><div class="content"><h3>${esc(m.name)}</h3><div class="pills"><span class="pill">${displayType(m.mealType)}</span><span class="pill">${m.time||"?"} min</span>${(m.tags||[]).slice(0,3).map(t=>`<span class="pill">${esc(t)}</span>`).join("")}</div><p class="sub">${esc(m.description||m.reason||"")}</p><div class="actions"><button class="btn secondary small" onclick="openRecipe('${m.id}')">Open recipe</button>${m.source==="ai"?`<button class="btn secondary small" onclick="generatePhoto('${m.id}',event)">Generate exact photo</button>`:""}</div>${ratingButtons(m)}</div></article>`).join(""):`<div class="empty">No recipes in the current plan.</div>`;
+}
+async function openRecipe(id){
+ const m=getMealById(id);if(!m)return;
+ openDrawerShell(m);
+ if(m.steps?.length)return renderDrawerRecipe(m);
+ if(m.source!=="ai")return;
+ try{
+  const d=await apiJSON("/.netlify/functions/ai-recipe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({meal:m,...aiPayload()})},"AI recipe");
+  state.recipes[id]={...m,...d.recipe,id,source:"ai"};const ix=state.plan.findIndex(x=>x.id===id);if(ix>=0)state.plan[ix]={...state.plan[ix],...d.recipe,id,source:"ai"};save();renderDrawerRecipe(state.recipes[id]);renderRecipes();
+ }catch(e){document.getElementById("drawerRecipeBody").innerHTML=`<div class="notice bad">${esc(e.message)}</div>`}
+}
+function openDrawerShell(m){
+ document.getElementById("drawerPanel").innerHTML=`<div class="drawer-photo" id="drawerPhoto" style="background-image:url('${photoFor(m)}')"><button class="close" onclick="closeDrawer()">×</button></div><div class="drawer-content"><div class="eyebrow" style="color:var(--green)">${displayType(m.mealType)} · ${m.time||"?"} min</div><h2 style="font-size:34px;margin:6px 0 8px">${esc(m.name)}</h2><div id="drawerRecipeBody"><div class="notice"><span class="loading"><span class="spinner" style="border-color:#c7b59c;border-top-color:var(--green)"></span> Finishing the exact recipe for this meal…</span></div></div></div>`;
+ document.getElementById("drawer").classList.add("open")
+}
+function renderDrawerRecipe(m){
+ const ings=(m.ingredients||[]).map(x=>typeof x==="string"?{item:x,amount:""}:x);
+ document.getElementById("drawerRecipeBody").innerHTML=`<div class="pills">${(m.tags||[]).map(x=>`<span class="pill">${esc(x)}</span>`).join("")}<span class="pill">Serves ${m.servings||state.settings.servings}</span></div>
+ <div class="drawer-grid"><div><h3>Ingredients</h3><ul>${ings.map(x=>`<li>${esc(x.amount||"")} ${esc(x.item)} ${hasPantry(x.item)?`<span class="tag">have it</span>`:""}</li>`).join("")}</ul>
+ ${m.storage?`<h3>Storage</h3><p class="sub">${esc(m.storage)}</p>`:""}${m.lunchboxNote?`<h3>Lunchbox note</h3><p class="sub">${esc(m.lunchboxNote)}</p>`:""}</div>
+ <div><h3>Method</h3><ol>${(m.steps||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ol>${m.familyTip?`<h3>Family tweak</h3><p class="sub">${esc(m.familyTip)}</p>`:""}
+ <div class="actions"><button class="btn secondary small" onclick="generatePhoto('${m.id}',event)">Generate photo of this exact meal</button></div></div></div>`;
+ const photo=document.getElementById("drawerPhoto");loadCachedPhoto(m.id).then(src=>{if(src)photo.style.backgroundImage=`url('${src}')`})
+}
+function closeDrawer(){document.getElementById("drawer").classList.remove("open")}
+async function generatePhoto(id,event){
+ event?.stopPropagation();const m=getMealById(id);if(!m)return;const btn=event?.currentTarget,old=btn?.innerHTML;if(btn){btn.disabled=true;btn.innerHTML="Creating photo…"}
+ try{
+  const cached=await loadCachedPhoto(id);if(cached){applyPhoto(id,cached);return}
+  const d=await apiJSON("/.netlify/functions/food-photo",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:m.name,description:m.description||"",ingredients:(m.ingredients||[]).map(x=>x.item||x).slice(0,12)})},"AI food photo");
+  const src=`data:${d.mime||"image/png"};base64,${d.b64}`;await cachePhoto(id,src);applyPhoto(id,src)
+ }catch(e){alert(e.message)}finally{if(btn){btn.disabled=false;btn.innerHTML=old}}
+}
+function applyPhoto(id,src){
+ ["planphoto-"+id,"recipephoto-"+id].forEach(x=>{const el=document.getElementById(x);if(el)el.style.backgroundImage=`url('${src}')`});const d=document.getElementById("drawerPhoto");if(d&&document.getElementById("drawer").classList.contains("open"))d.style.backgroundImage=`url('${src}')`
+}
+function db(){return new Promise((res,rej)=>{const r=indexedDB.open("FamilyMealMakerPhotos",1);r.onupgradeneeded=()=>r.result.createObjectStore("photos");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function cachePhoto(id,src){try{const d=await db();await new Promise((res,rej)=>{const t=d.transaction("photos","readwrite");t.objectStore("photos").put(src,id);t.oncomplete=res;t.onerror=()=>rej(t.error)});d.close()}catch(e){}}
+async function loadCachedPhoto(id){try{const d=await db();const v=await new Promise((res,rej)=>{const r=d.transaction("photos").objectStore("photos").get(id);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});d.close();return v}catch(e){return null}}
+function renderMemory(){
+ const vals=Object.values(state.ratings).sort((a,b)=>(b.updated||"").localeCompare(a.updated||""));
+ const box=(rating,id)=>{const a=vals.filter(x=>x.rating===rating);document.getElementById(id).innerHTML=a.length?a.map(x=>`<div class="history-row"><span>${esc(x.name)}</span><button class="icon" onclick="forgetRating(decodeURIComponent('${encodeURIComponent(slug(x.name))}'))">Forget</button></div>`).join(""):`<span class="sub">Nothing here yet.</span>`};
+ box("love","lovedMeals");box("okay","okayMeals");box("nope","nopeMeals");
+ document.getElementById("recentMeals").innerHTML=state.recent.length?state.recent.map(x=>`<span class="tag">${esc(x)}</span>`).join(""):`<span class="sub">No recent dinners stored yet.</span>`
+}
+function forgetRating(k){delete state.ratings[k];save();renderMemory();renderStats()}
+function clearMemory(){if(confirm("Reset meal ratings and recent-meal learning?")){state.ratings={};state.recent=[];save();renderAll()}}
+function renderAll(){renderPantry();renderFamily();renderStats();renderPlan();renderRecipes();renderShopping();renderMemory()}
+load();
+</script>
+</body>
+</html>
